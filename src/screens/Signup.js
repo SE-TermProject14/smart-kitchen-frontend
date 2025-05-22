@@ -8,17 +8,65 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import axios from '../api/axiosInstance';
 import { colors } from '../../constants';
 
 const Signup = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [birthday, setBirthday] = useState(null);
+  const [sexCd, setSexCd] = useState('male');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const handleSignup = () => {
-    console.log('회원가입 요청', { username, email, password });
-    // 회원가입 API 연동 예정
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setBirthday(date);
+    hideDatePicker();
+  };
+
+  const handleSignup = async () => {
+    if (!username.trim()) {
+      alert('이름을 입력해주세요.');
+      return;
+    }
+
+    if (!password || password.length < 4) {
+      alert('비밀번호는 4자 이상이어야 합니다.');
+      return;
+    }
+
+    if (!birthday) {
+      alert('생일을 선택해주세요.');
+      return;
+    }
+
+    if (!['male', 'female'].includes(sexCd)) {
+      alert('성별을 선택해주세요.');
+      return;
+    }
+
+    try {
+      await axios.post('/auth/signup', {
+        name: username,
+        password,
+        birthday: birthday.toISOString().split('T')[0],
+        sex_cd: sexCd,
+      });
+      alert('회원가입 성공!');
+      navigation.navigate('Login');
+    } catch (err) {
+      console.error(err);
+      alert('회원가입 실패');
+    }
   };
 
   return (
@@ -33,12 +81,22 @@ const Signup = () => {
           onChangeText={setUsername}
         />
 
-        <TextInput
+        <TouchableOpacity
           style={styles.input}
-          placeholder="이메일"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
+          onPress={showDatePicker}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: birthday ? '#000' : '#999' }}>
+            {birthday ? birthday.toISOString().split('T')[0] : '생일'}
+          </Text>
+        </TouchableOpacity>
+
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+          date={birthday || new Date()}
         />
 
         <TextInput
@@ -48,6 +106,42 @@ const Signup = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+
+        <View style={styles.genderContainer}>
+          <TouchableOpacity
+            style={[
+              styles.genderButton,
+              sexCd === 'male' && styles.genderButtonSelected,
+            ]}
+            onPress={() => setSexCd('male')}
+          >
+            <Text
+              style={[
+                styles.genderText,
+                sexCd === 'male' && styles.genderTextSelected,
+              ]}
+            >
+              남성
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.genderButton,
+              sexCd === 'female' && styles.genderButtonSelected,
+            ]}
+            onPress={() => setSexCd('female')}
+          >
+            <Text
+              style={[
+                styles.genderText,
+                sexCd === 'female' && styles.genderTextSelected,
+              ]}
+            >
+              여성
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.button} onPress={handleSignup}>
           <Text style={styles.buttonText}>회원가입</Text>
@@ -81,6 +175,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: 16,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginBottom: 16,
+  },
+  genderButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 20,
+    backgroundColor: '#fff',
+  },
+  genderButtonSelected: {
+    backgroundColor: colors.MINT,
+    borderColor: colors.MINT,
+  },
+  genderText: {
+    color: '#555',
+    fontWeight: '600',
+  },
+  genderTextSelected: {
+    color: '#fff',
   },
   button: {
     backgroundColor: colors.MINT,

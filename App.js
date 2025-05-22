@@ -83,15 +83,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // useEffect(() => {
-  //   const checkToken = async () => {
-  //     const token = await AsyncStorage.getItem('token');
-  //     setIsLoggedIn(!!token);
-  //     setLoading(false);
-  //   };
-  //   checkToken();
-  // }, []);
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
