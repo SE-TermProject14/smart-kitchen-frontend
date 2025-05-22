@@ -15,7 +15,7 @@ import { colors } from '../../constants';
 const MyPage = () => {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
-  const userGender = user.sex_cd === 'male' ? '남자' : '여자';
+  const userGender = user?.sex_cd === 'male' ? '남자' : '여자';
 
   const fetchUser = async () => {
     try {
@@ -79,7 +79,7 @@ const MyPage = () => {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Smart Kitchen</Text>
+          <Text style={styles.footerText}>SE-14</Text>
         </View>
       </View>
     </SafeAreaView>

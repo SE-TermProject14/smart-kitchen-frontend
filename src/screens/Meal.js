@@ -11,20 +11,31 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { colors } from '../../constants';
-
-const dummySearchResults = [
-  { id: '1', name: '김치찌개' },
-  { id: '2', name: '샐러드' },
-  { id: '3', name: '떡볶이' },
-];
-
-const dummyTodayMeals = [
-  { id: '1', name: '바나나', amount: 100 },
-  { id: '2', name: '현미밥', amount: 200 },
-];
+import axios from '../api/axiosInstance';
+import { useEffect } from 'react';
 
 const Meal = () => {
   const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!searchText.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`/api/meals/search?keyword=${searchText}`);
+        setSearchResults(res.data);
+      } catch (err) {
+        console.error(err);
+        setSearchResults([]);
+      }
+    };
+
+    fetchSearchResults();
+  }, [searchText]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -43,11 +54,11 @@ const Meal = () => {
 
         <Text style={styles.sectionTitle}>검색 결과</Text>
         <FlatList
-          data={dummySearchResults}
-          keyExtractor={(item) => item.id}
+          data={searchResults}
+          keyExtractor={(item) => item.food_id.toString()}
           renderItem={({ item }) => (
             <View style={styles.searchItem}>
-              <Text>{item.name}</Text>
+              <Text>{item.food_name}</Text>
               <TouchableOpacity style={styles.addButton}>
                 <Text style={styles.addButtonText}>추가</Text>
               </TouchableOpacity>
@@ -55,7 +66,7 @@ const Meal = () => {
           )}
         />
 
-        <Text style={styles.sectionTitle}>오늘의 식사</Text>
+        {/* <Text style={styles.sectionTitle}>오늘의 식사</Text>
         <FlatList
           data={dummyTodayMeals}
           keyExtractor={(item) => item.id}
@@ -64,7 +75,7 @@ const Meal = () => {
               • {item.name} ({item.amount}g)
             </Text>
           )}
-        />
+        /> */}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

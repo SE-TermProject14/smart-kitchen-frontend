@@ -97,6 +97,10 @@ const Signup = () => {
           onConfirm={handleConfirm}
           onCancel={hideDatePicker}
           date={birthday || new Date()}
+          pickerContainerStyleIOS={{
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         />
 
         <TextInput
