@@ -12,7 +12,6 @@ import { colors } from '../../constants';
 import axios from '../api/axiosInstance';
 import { Alert } from 'react-native';
 import { storeToken } from '../utils/authStorage';
-import Toast from 'react-native-toast-message';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -37,14 +36,6 @@ const Login = () => {
 
       const { token } = response.data;
       await storeToken(token);
-
-      Toast.show({
-        type: 'success',
-        text1: `환영합니다, ${name}님!`,
-        position: 'top',
-        visibilityTime: 2000,
-        topOffset: 80,
-      });
 
       navigation.push('Bottom');
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Text,
   StyleSheet,
@@ -14,8 +14,10 @@ import {
   fetchUserInfo,
   fetchMealsByDate,
   fetchNutritionByDate,
+  fetchProducts,
 } from '../utils/api';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Notifications from 'expo-notifications';
 
 const HomeScreen = () => {
   const [username, setUsername] = useState('');
@@ -26,6 +28,41 @@ const HomeScreen = () => {
   });
   const [nutrition, setNutrition] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const setupNotifications = async () => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      console.warn('알림 권한이 거부되었습니다.');
+    }
+  };
+
+  const checkExpiringFoods = async () => {
+    try {
+      const data = await fetchProducts();
+      const today = new Date();
+
+      const expiringItems = data.filter((item) => {
+        const expireDate = new Date(item.expire_date);
+        const diffDays = Math.floor(
+          (expireDate - today) / (1000 * 60 * 60 * 24)
+        );
+        return diffDays <= 3 && diffDays > 0;
+      });
+
+      if (expiringItems.length > 0) {
+        const names = expiringItems.map((item) => item.buy_name).join(', ');
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '⚠️ 유통기한 주의',
+            body: `${names} 유통기한이 얼마 안 남았어요!`,
+          },
+          trigger: null,
+        });
+      }
+    } catch (err) {
+      console.error('유통기한 알림 오류:', err);
+    }
+  };
 
   const getToday = () => {
     const now = new Date();
@@ -74,6 +111,11 @@ const HomeScreen = () => {
       fetchData();
     }, [])
   );
+
+  useEffect(() => {
+    setupNotifications();
+    checkExpiringFoods();
+  }, []);
 
   if (loading) {
     return (

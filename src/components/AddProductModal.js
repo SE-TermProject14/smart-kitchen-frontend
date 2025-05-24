@@ -13,6 +13,7 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { colors } from '../../constants';
 import axios from '../api/axiosInstance';
+import { formatDate } from '../utils/format';
 
 const AddProductModal = ({
   visible,
@@ -75,8 +76,8 @@ const AddProductModal = ({
     const payload = {
       buy_name: name,
       buy_cnt: Number(cnt),
-      buy_date: buyDate.toISOString().split('T')[0],
-      expire_date: expireDate.toISOString().split('T')[0],
+      buy_date: formatDate(buyDate),
+      expire_date: formatDate(expireDate),
     };
 
     try {
@@ -125,7 +126,7 @@ const AddProductModal = ({
               }}
             >
               <Text style={{ color: buyDate ? '#000' : '#999' }}>
-                {buyDate ? buyDate.toISOString().split('T')[0] : '구매일'}
+                {buyDate ? formatDate(buyDate) : '구매일'}
               </Text>
             </TouchableOpacity>
 
@@ -137,9 +138,7 @@ const AddProductModal = ({
               }}
             >
               <Text style={{ color: expireDate ? '#000' : '#999' }}>
-                {expireDate
-                  ? expireDate.toISOString().split('T')[0]
-                  : '유통기한'}
+                {expireDate ? formatDate(expireDate) : '유통기한'}
               </Text>
             </TouchableOpacity>
 

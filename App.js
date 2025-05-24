@@ -11,7 +11,16 @@ import Profile from './src/screens/Profile';
 import Splash from './src/screens/Splash';
 import Login from './src/screens/Login';
 import Signup from './src/screens/Signup';
-import Toast from 'react-native-toast-message';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -88,7 +97,6 @@ export default function App() {
           <Stack.Screen name="Bottom" component={BottomTabScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-      <Toast />
     </>
   );
 }

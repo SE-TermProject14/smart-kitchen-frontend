@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { colors } from '../../constants';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import AddProductModal from '../components/AddProductModal';
 import ProductItem from '../components/ProductItem';
 import { fetchProducts, deleteProductById } from '../utils/api';
@@ -45,11 +45,11 @@ const Inventory = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>내 식품 목록</Text>
+
         {products.length === 0 && (
-          <Text style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
-            등록된 식품이 없습니다.
-          </Text>
+          <Text style={styles.emptyText}>등록된 식품이 없습니다.</Text>
         )}
+
         <FlatList
           data={products}
           keyExtractor={(item) => item.buy_id.toString()}
@@ -64,6 +64,7 @@ const Inventory = () => {
             />
           )}
         />
+
         <AddProductModal
           visible={modalVisible}
           mode={editData ? 'edit' : 'add'}
@@ -98,14 +99,19 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 20,
   },
   addButton: {
     backgroundColor: colors.RED_500,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
     margin: 20,
   },
   addButtonText: {
