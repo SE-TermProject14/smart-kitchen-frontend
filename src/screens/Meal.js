@@ -176,6 +176,7 @@ const Meal = () => {
               setSelectedDate(date);
               fetchMeals(date);
             }}
+            display="spinner"
             onCancel={() => setShowDatePicker(false)}
             pickerContainerStyleIOS={{
               alignItems: 'center',

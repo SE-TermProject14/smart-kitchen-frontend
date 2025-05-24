@@ -37,7 +37,18 @@ const Login = () => {
       const { token } = response.data;
       await storeToken(token);
 
-      navigation.push('Bottom');
+      Alert.alert(
+        '로그인 성공',
+        '날짜 선택 UI가 잘 보이지 않을 수 있어, 라이트모드를 권장합니다.',
+        [
+          {
+            text: '확인',
+            onPress: () => {
+              navigation.push('Bottom');
+            },
+          },
+        ]
+      );
     } catch (error) {
       console.error('로그인 실패', error);
       Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
