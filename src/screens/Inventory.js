@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -8,7 +7,6 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { colors } from '../../constants';
-import axios from '../api/axiosInstance';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import AddProductModal from '../components/AddProductModal';

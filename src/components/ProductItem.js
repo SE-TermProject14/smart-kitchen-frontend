@@ -3,6 +3,7 @@ import { colors } from '../../constants';
 
 const ProductItem = ({ item, onEdit, onDelete }) => {
   const isExpiringSoon = item.days_until_expiry <= 3;
+  const isExpired = item.days_until_expiry <= 0;
 
   return (
     <View style={styles.itemBox}>
@@ -15,11 +16,12 @@ const ProductItem = ({ item, onEdit, onDelete }) => {
             보관 :
             <Text
               style={[
-                styles.itemDetail,
+                styles.normalText,
                 isExpiringSoon && styles.expireWarning,
+                isExpired && styles.expiredText,
               ]}
             >
-              {isExpiringSoon ? ' 임박 ⚠️' : ' 정상'}
+              {isExpired ? ' 만료' : isExpiringSoon ? ' 임박 ⚠️' : ' 정상'}
             </Text>
           </Text>
         </View>
@@ -96,6 +98,16 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '600',
     fontSize: 13,
+  },
+  normalText: {
+    fontSize: 14,
+    marginTop: 2,
+    color: colors.MINT,
+  },
+  expiredText: {
+    color: '#999',
+    fontWeight: '700',
+    textDecorationLine: 'line-through',
   },
 });
 

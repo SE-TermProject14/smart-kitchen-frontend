@@ -21,6 +21,7 @@ import {
 } from '../utils/api';
 import MealSection from '../components/MealSection';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import debounce from 'lodash.debounce';
 
 const Meal = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -46,17 +47,25 @@ const Meal = () => {
   }, []);
 
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!searchText.trim()) return setSearchResults([]);
+    const debouncedSearch = debounce(async (text) => {
+      if (!text.trim()) {
+        setSearchResults([]);
+        return;
+      }
       try {
-        const results = await searchFood(searchText);
+        const results = await searchFood(text);
         setSearchResults(results);
       } catch (err) {
         console.error(err);
         setSearchResults([]);
       }
+    }, 300);
+
+    debouncedSearch(searchText);
+
+    return () => {
+      debouncedSearch.cancel();
     };
-    fetchResults();
   }, [searchText]);
 
   const fetchMeals = async (date) => {
