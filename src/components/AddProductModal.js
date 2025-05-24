@@ -107,12 +107,14 @@ const AddProductModal = ({
 
             <TextInput
               placeholder="식품 이름"
+              placeholderTextColor="#999"
               style={styles.input}
               value={name}
               onChangeText={setName}
             />
             <TextInput
               placeholder="수량"
+              placeholderTextColor="#999"
               style={styles.input}
               value={cnt}
               onChangeText={setCnt}
@@ -146,6 +148,7 @@ const AddProductModal = ({
             <DateTimePickerModal
               isVisible={!!target}
               mode="date"
+              display="spinner"
               onConfirm={handleConfirm}
               onCancel={hideDatePicker}
               date={new Date()}

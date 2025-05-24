@@ -99,6 +99,7 @@ const Signup = () => {
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
+          display="spinner"
           onConfirm={handleConfirm}
           onCancel={hideDatePicker}
           date={birthday || new Date()}
