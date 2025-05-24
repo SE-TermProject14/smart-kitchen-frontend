@@ -1,74 +1,101 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   SafeAreaView,
-  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-
-const dummyStats = [
-  { date: '05/18', calories: 820, carbs: 100, protein: 55, fat: 20 },
-  { date: '05/19', calories: 900, carbs: 110, protein: 60, fat: 22 },
-  { date: '05/20', calories: 760, carbs: 90, protein: 50, fat: 18 },
-];
+import { useFocusEffect } from '@react-navigation/native';
+import { formatStatsDate, getDateRange } from '../utils/format';
+import { fetchStatsInRange } from '../utils/api';
+import CaloriesBarChart from '../components/CaloriesBarChart';
+import StatsSummaryItem from '../components/StatsSummaryItem';
 
 const Stats = () => {
-  const screenWidth = Dimensions.get('window').width;
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchStats = async () => {
+        try {
+          setLoading(true);
+          const dates = getDateRange(5);
+          const startDate = dates[0].toISOString().split('T')[0];
+          const endDate = dates[dates.length - 1].toISOString().split('T')[0];
+
+          const data = await fetchStatsInRange(startDate, endDate);
+
+          const grouped = {};
+          data.forEach((item) => {
+            const dateKey = item.consumed_date;
+            if (!grouped[dateKey]) {
+              grouped[dateKey] = { calories: 0, carbs: 0, protein: 0, fat: 0 };
+            }
+            grouped[dateKey].calories += Number(item.calorie_total || 0);
+            grouped[dateKey].carbs += Number(item.carb_total || 0);
+            grouped[dateKey].protein += Number(item.protein_total || 0);
+            grouped[dateKey].fat += Number(item.fat_total || 0);
+          });
+
+          const finalStats = dates.map((d) => {
+            const key = d.toISOString().split('T')[0];
+            return {
+              date: formatStatsDate(d),
+              calories: grouped[key]?.calories || 0,
+              carbs: grouped[key]?.carbs || 0,
+              protein: grouped[key]?.protein || 0,
+              fat: grouped[key]?.fat || 0,
+            };
+          });
+
+          setStats(finalStats);
+        } catch (err) {
+          console.error('통계 데이터 불러오기 실패:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchStats();
+    }, [])
+  );
 
   const chartData = {
-    labels: dummyStats.map((item) => item.date),
+    labels: stats.map((item) => item.date),
     datasets: [
       {
-        data: dummyStats.map((item) => item.calories),
+        data: stats.map((item) => item.calories),
       },
     ],
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator
+          size="large"
+          color="#ff6b57"
+          style={{ marginTop: 50 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <FlatList
-        data={dummyStats}
+        data={stats}
         keyExtractor={(item) => item.date}
         ListHeaderComponent={
           <View>
-            <Text style={styles.title}>영양 통계</Text>
-
-            <Text style={styles.sectionTitle}>최근 3일 칼로리 섭취</Text>
-            <BarChart
-              data={chartData}
-              width={screenWidth - 40}
-              height={220}
-              yAxisSuffix=" kcal"
-              fromZero
-              chartConfig={{
-                backgroundColor: '#fff',
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(255, 107, 87, ${opacity})`,
-                labelColor: () => '#555',
-                style: {
-                  borderRadius: 12,
-                },
-              }}
-              style={{ borderRadius: 12, marginBottom: 20 }}
-            />
-
+            <CaloriesBarChart data={chartData} />
             <Text style={styles.sectionTitle}>섭취 요약</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={styles.itemBox}>
-            <Text style={styles.date}>{item.date}</Text>
-            <Text style={styles.itemText}>{item.calories} kcal</Text>
-            <Text style={styles.itemText}>탄수화물: {item.carbs}g</Text>
-            <Text style={styles.itemText}>단백질: {item.protein}g</Text>
-            <Text style={styles.itemText}>지방: {item.fat}g</Text>
-          </View>
-        )}
+        renderItem={({ item }) => <StatsSummaryItem item={item} />}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       />
@@ -85,30 +112,11 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginVertical: 10,
-  },
-  itemBox: {
-    backgroundColor: '#f2f2f2',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  date: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  itemText: {
-    fontSize: 14,
-    color: '#444',
+    marginBottom: 32,
   },
 });
 

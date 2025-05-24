@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { colors } from '../../constants';
@@ -96,65 +98,75 @@ const AddProductModal = ({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <Text style={styles.title}>식품 추가</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <Text style={styles.title}>식품 추가</Text>
 
-          <TextInput
-            placeholder="식품 이름"
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            placeholder="수량"
-            style={styles.input}
-            value={cnt}
-            onChangeText={setCnt}
-            keyboardType="number-pad"
-          />
+            <TextInput
+              placeholder="식품 이름"
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              placeholder="수량"
+              style={styles.input}
+              value={cnt}
+              onChangeText={setCnt}
+              keyboardType="number-pad"
+            />
 
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => showDatePicker('buy')}
-          >
-            <Text style={{ color: buyDate ? '#000' : '#999' }}>
-              {buyDate ? buyDate.toISOString().split('T')[0] : '구매일'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={() => {
+                Keyboard.dismiss();
+                showDatePicker('buy');
+              }}
+            >
+              <Text style={{ color: buyDate ? '#000' : '#999' }}>
+                {buyDate ? buyDate.toISOString().split('T')[0] : '구매일'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => showDatePicker('expire')}
-          >
-            <Text style={{ color: expireDate ? '#000' : '#999' }}>
-              {expireDate ? expireDate.toISOString().split('T')[0] : '유통기한'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={() => {
+                Keyboard.dismiss();
+                showDatePicker('expire');
+              }}
+            >
+              <Text style={{ color: expireDate ? '#000' : '#999' }}>
+                {expireDate
+                  ? expireDate.toISOString().split('T')[0]
+                  : '유통기한'}
+              </Text>
+            </TouchableOpacity>
 
-          <DateTimePickerModal
-            isVisible={!!target}
-            mode="date"
-            onConfirm={handleConfirm}
-            onCancel={hideDatePicker}
-            date={new Date()}
-            pickerContainerStyleIOS={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          />
+            <DateTimePickerModal
+              isVisible={!!target}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={hideDatePicker}
+              date={new Date()}
+              pickerContainerStyleIOS={{
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            />
 
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>
-              {mode === 'edit' ? '수정하기' : '추가하기'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>
+                {mode === 'edit' ? '수정하기' : '추가하기'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={onClose} style={styles.cancel}>
-            <Text style={{ color: '#888' }}>닫기</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={onClose} style={styles.cancel}>
+              <Text style={{ color: '#888' }}>닫기</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

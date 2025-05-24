@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { colors } from '../../constants';
 import axios from '../api/axiosInstance';
 import { Alert } from 'react-native';
 import { storeToken } from '../utils/authStorage';
+import Toast from 'react-native-toast-message';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -19,6 +20,15 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
+    if (!name.trim()) {
+      Alert.alert('입력 오류', '닉네임을 입력해주세요.');
+      return;
+    }
+    if (!password.trim()) {
+      Alert.alert('입력 오류', '비밀번호를 입력해주세요.');
+      return;
+    }
+
     try {
       const response = await axios.post('/auth/login', {
         name,
@@ -27,6 +37,15 @@ const Login = () => {
 
       const { token } = response.data;
       await storeToken(token);
+
+      Toast.show({
+        type: 'success',
+        text1: `환영합니다, ${name}님!`,
+        position: 'top',
+        visibilityTime: 2000,
+        topOffset: 80,
+      });
+
       navigation.push('Bottom');
     } catch (error) {
       console.error('로그인 실패', error);
@@ -53,6 +72,8 @@ const Login = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          textContentType="oneTimeCode"
+          autoComplete="off"
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>

@@ -1,19 +1,17 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './src/screens/Home';
 import Meal from './src/screens/Meal';
 import Inventory from './src/screens/Inventory';
 import Stats from './src/screens/Stats';
-
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from './constants';
 import Profile from './src/screens/Profile';
-import { useEffect, useState } from 'react';
 import Splash from './src/screens/Splash';
 import Login from './src/screens/Login';
 import Signup from './src/screens/Signup';
+import Toast from 'react-native-toast-message';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,17 +78,17 @@ const BottomTabScreen = () => {
 };
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={Splash} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Signup" component={Signup} />
-        <Stack.Screen name="Bottom" component={BottomTabScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Splash" component={Splash} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Signup" component={Signup} />
+          <Stack.Screen name="Bottom" component={BottomTabScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <Toast />
+    </>
   );
 }
