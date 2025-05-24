@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Keyboard,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import axios from '../api/axiosInstance';
 import { colors } from '../../constants';
+import { formatDate } from '../utils/format';
 
 const Signup = () => {
   const navigation = useNavigation();
@@ -83,11 +85,14 @@ const Signup = () => {
 
         <TouchableOpacity
           style={styles.input}
-          onPress={showDatePicker}
+          onPress={() => {
+            Keyboard.dismiss();
+            showDatePicker();
+          }}
           activeOpacity={0.8}
         >
           <Text style={{ color: birthday ? '#000' : '#999' }}>
-            {birthday ? birthday.toISOString().split('T')[0] : '생일'}
+            {birthday ? formatDate(birthday) : '생일'}
           </Text>
         </TouchableOpacity>
 

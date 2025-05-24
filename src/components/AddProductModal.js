@@ -44,7 +44,6 @@ const AddProductModal = ({
           initialData.expire_date ? new Date(initialData.expire_date) : null
         );
       } else {
-        // 추가 모드일 때 필드 초기화
         setName('');
         setCnt('');
         setBuyDate(null);
@@ -102,7 +101,9 @@ const AddProductModal = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.overlay}>
           <View style={styles.modal}>
-            <Text style={styles.title}>식품 추가</Text>
+            <Text style={styles.title}>
+              {mode === 'add' ? '식품 추가' : '식품 수정'}
+            </Text>
 
             <TextInput
               placeholder="식품 이름"

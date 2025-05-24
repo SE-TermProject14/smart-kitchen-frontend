@@ -10,6 +10,7 @@ const ProductItem = ({ item, onEdit, onDelete }) => {
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.buy_name}</Text>
         <Text style={styles.itemDetail}>수량: {item.buy_cnt}</Text>
+        <Text style={styles.itemDetail}>구매일: {item.buy_date}</Text>
         <Text style={styles.itemDetail}>유통기한: {item.expire_date}</Text>
         <View>
           <Text style={styles.itemDetail}>
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   itemDetail: {
     fontSize: 14,
     color: '#555',
-    marginTop: 2,
+    marginTop: 4,
   },
   expireWarning: {
     color: colors.RED_500,
