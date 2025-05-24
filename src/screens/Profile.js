@@ -64,15 +64,10 @@ const MyPage = () => {
             <Text style={styles.info}>생일: {user.birthday}</Text>
             <Text style={styles.info}>성별: {userGender}</Text>
             <Text style={styles.info}>가입일: {user.registration}</Text>
-            <Text style={styles.info}>수정일: {user.modified}</Text>
           </View>
         ) : (
           <Text>불러오는 중...</Text>
         )}
-
-        <TouchableOpacity style={styles.editButton}>
-          <Text style={styles.editButtonText}>내 정보 수정</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>로그아웃</Text>
@@ -115,18 +110,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginVertical: 2,
-  },
-  editButton: {
-    backgroundColor: colors.MINT,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  editButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   logoutButton: {
     backgroundColor: colors.RED_500,

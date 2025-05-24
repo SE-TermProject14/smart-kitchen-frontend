@@ -16,6 +16,8 @@ import {
   fetchNutritionByDate,
   fetchProducts,
 } from '../utils/api';
+
+import { getToday, formatToday } from '../utils/format';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Notifications from 'expo-notifications';
 
@@ -62,24 +64,6 @@ const HomeScreen = () => {
     } catch (err) {
       console.error('유통기한 알림 오류:', err);
     }
-  };
-
-  const getToday = () => {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const formatToday = () => {
-    const date = new Date();
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const dayOfWeek = weekdays[date.getDay()];
-    return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
   };
 
   useFocusEffect(
