@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -9,16 +9,39 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../../constants';
+import axios from '../api/axiosInstance';
+import { Alert } from 'react-native';
+import { storeToken } from '../utils/authStorage';
 
 const Login = () => {
   const navigation = useNavigation();
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    console.log('로그인 요청', { email, password });
-    navigation.push('Bottom');
-    // 로그인 API 연동 예정
+  const handleLogin = async () => {
+    if (!name.trim()) {
+      Alert.alert('입력 오류', '닉네임을 입력해주세요.');
+      return;
+    }
+    if (!password.trim()) {
+      Alert.alert('입력 오류', '비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/auth/login', {
+        name,
+        password,
+      });
+
+      const { token } = response.data;
+      await storeToken(token);
+
+      navigation.push('Bottom');
+    } catch (error) {
+      console.error('로그인 실패', error);
+      Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
+    }
   };
 
   return (
@@ -28,9 +51,9 @@ const Login = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="이메일"
-          value={email}
-          onChangeText={setEmail}
+          placeholder="닉네임"
+          value={name}
+          onChangeText={setName}
           autoCapitalize="none"
         />
 
@@ -40,6 +63,8 @@ const Login = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          textContentType="oneTimeCode"
+          autoComplete="off"
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>

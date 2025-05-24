@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -6,65 +5,81 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { colors } from '../../constants';
-
-const dummyProducts = [
-  {
-    id: '1',
-    name: '우유',
-    quantity: 2,
-    expiryDate: '2025-05-25',
-    storage: '냉장',
-  },
-  {
-    id: '2',
-    name: '계란',
-    quantity: 10,
-    expiryDate: '2025-05-22',
-    storage: '냉장',
-  },
-  {
-    id: '3',
-    name: '라면',
-    quantity: 5,
-    expiryDate: '2025-08-01',
-    storage: '실온',
-  },
-];
+import { useEffect, useState } from 'react';
+import AddProductModal from '../components/AddProductModal';
+import ProductItem from '../components/ProductItem';
+import { fetchProducts, deleteProductById } from '../utils/api';
 
 const Inventory = () => {
+  const [products, setProducts] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editData, setEditData] = useState(null);
+
+  const loadProducts = async () => {
+    const data = await fetchProducts();
+    setProducts(data);
+  };
+
+  const handleDelete = (id) => {
+    Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteProductById(id);
+          loadProducts();
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>내 식품 목록</Text>
 
+        {products.length === 0 && (
+          <Text style={styles.emptyText}>등록된 식품이 없습니다.</Text>
+        )}
+
         <FlatList
-          data={dummyProducts}
-          keyExtractor={(item) => item.id}
+          data={products}
+          keyExtractor={(item) => item.buy_id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.itemBox}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDetail}>수량: {item.quantity}</Text>
-                <Text style={styles.itemDetail}>
-                  유통기한: {item.expiryDate}
-                </Text>
-                <Text style={styles.itemDetail}>보관: {item.storage}</Text>
-              </View>
-              <View style={styles.itemButtons}>
-                <TouchableOpacity style={styles.editButton}>
-                  <Text style={styles.buttonText}>수정</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton}>
-                  <Text style={styles.buttonText}>삭제</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <ProductItem
+              item={item}
+              onEdit={(item) => {
+                setEditData(item);
+                setModalVisible(true);
+              }}
+              onDelete={handleDelete}
+            />
           )}
         />
 
-        <TouchableOpacity style={styles.addButton}>
+        <AddProductModal
+          visible={modalVisible}
+          mode={editData ? 'edit' : 'add'}
+          initialData={editData || {}}
+          onClose={() => {
+            setModalVisible(false);
+            setEditData(null);
+          }}
+          onSubmitSuccess={loadProducts}
+        />
+
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setModalVisible(true)}
+        >
           <Text style={styles.addButtonText}>+ 식품 추가</Text>
         </TouchableOpacity>
       </View>
@@ -78,61 +93,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.WHITE,
   },
   container: {
-    padding: 20,
     flex: 1,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
-  itemBox: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  itemDetail: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 2,
-  },
-  itemButtons: {
-    justifyContent: 'space-around',
-  },
-  editButton: {
-    backgroundColor: colors.MINT,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    marginBottom: 5,
-  },
-  deleteButton: {
-    backgroundColor: colors.RED_500,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
+  emptyText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 20,
   },
   addButton: {
     backgroundColor: colors.RED_500,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    margin: 20,
   },
   addButtonText: {
     color: 'white',

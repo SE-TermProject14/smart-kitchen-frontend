@@ -1,123 +1,266 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  FlatList,
   TouchableOpacity,
+  ScrollView,
+  Alert,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
 } from 'react-native';
+import FoodSearchModal from '../components/FoodSearchModal';
+import { formatDate } from '../utils/format';
 import { colors } from '../../constants';
-
-const dummySearchResults = [
-  { id: '1', name: '김치찌개' },
-  { id: '2', name: '샐러드' },
-  { id: '3', name: '떡볶이' },
-];
-
-const dummyTodayMeals = [
-  { id: '1', name: '바나나', amount: 100 },
-  { id: '2', name: '현미밥', amount: 200 },
-];
+import {
+  getMealsByDate,
+  createMeal,
+  addFood,
+  deleteMealById,
+  deleteMealFoodById,
+  searchFood,
+} from '../utils/api';
+import MealSection from '../components/MealSection';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import debounce from 'lodash.debounce';
 
 const Meal = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [todayMeals, setTodayMeals] = useState({
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+  });
+  const [mealIds, setMealIds] = useState({
+    breakfast: null,
+    lunch: null,
+    dinner: null,
+  });
+  const [selectedMealCd, setSelectedMealCd] = useState(null);
+  const [selectedMealId, setSelectedMealId] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  useEffect(() => {
+    fetchMeals(selectedDate);
+  }, []);
+
+  useEffect(() => {
+    const debouncedSearch = debounce(async (text) => {
+      if (!text.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const results = await searchFood(text);
+        setSearchResults(results);
+      } catch (err) {
+        console.error(err);
+        setSearchResults([]);
+      }
+    }, 300);
+
+    debouncedSearch(searchText);
+
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [searchText]);
+
+  const fetchMeals = async (date) => {
+    try {
+      const data = await getMealsByDate(formatDate(date));
+      const categorized = { breakfast: [], lunch: [], dinner: [] };
+      const ids = { breakfast: null, lunch: null, dinner: null };
+
+      data.forEach((item) => {
+        const key = item.meal_cd;
+        if (categorized[key]) {
+          categorized[key].push(item);
+          if (!ids[key]) ids[key] = item.meal_id;
+        }
+      });
+
+      setTodayMeals(categorized);
+      setMealIds(ids);
+    } catch (err) {
+      console.error(err);
+      setTodayMeals({ breakfast: [], lunch: [], dinner: [] });
+      setMealIds({ breakfast: null, lunch: null, dinner: null });
+    }
+  };
+
+  const openMealModal = (mealCd) => {
+    setSelectedMealCd(mealCd);
+    setSelectedMealId(mealIds[mealCd]);
+    setShowModal(true);
+  };
+
+  const closeMealModal = () => {
+    setShowModal(false);
+    setSearchText('');
+    setSearchResults([]);
+  };
+
+  const addFoodToMeal = async (foodId) => {
+    try {
+      const mealId =
+        selectedMealId ||
+        (await createMeal({
+          meal_date: formatDate(selectedDate),
+          meal_cd: selectedMealCd,
+        }));
+      await addFood({ meal_id: mealId, food_id: foodId });
+      Alert.alert('음식이 추가되었습니다!');
+      fetchMeals(selectedDate);
+    } catch (err) {
+      console.error(err);
+      Alert.alert('음식 추가 실패');
+    }
+  };
+
+  const handleDeleteMeal = async (mealCd) => {
+    const mealId = mealIds[mealCd];
+    if (!mealId) return;
+
+    Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteMealById(mealId);
+            fetchMeals(selectedDate);
+          } catch (err) {
+            console.error(err);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteFoodItem = async (mealFoodId) => {
+    Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteMealFoodById(mealFoodId);
+            fetchMeals(selectedDate);
+          } catch (err) {
+            console.error(err);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
-      >
-        <Text style={styles.title}>식사 기록</Text>
+      <ScrollView style={styles.container}>
+        <View style={styles.dateContainer}>
+          <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.changeDateText}>날짜 변경</Text>
+          </TouchableOpacity>
+          <DateTimePickerModal
+            isVisible={showDatePicker}
+            mode="date"
+            date={selectedDate}
+            onConfirm={(date) => {
+              setShowDatePicker(false);
+              setSelectedDate(date);
+              fetchMeals(date);
+            }}
+            onCancel={() => setShowDatePicker(false)}
+            pickerContainerStyleIOS={{
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          />
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="음식 이름을 입력하세요"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        <View style={styles.buttonRow}>
+          {['breakfast', 'lunch', 'dinner'].map((meal) => (
+            <TouchableOpacity
+              key={meal}
+              style={styles.mealButton}
+              onPress={() => openMealModal(meal)}
+            >
+              <Text style={styles.mealButtonText}>
+                {meal === 'breakfast'
+                  ? '아침'
+                  : meal === 'lunch'
+                  ? '점심'
+                  : '저녁'}{' '}
+                기록
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-        <Text style={styles.sectionTitle}>검색 결과</Text>
-        <FlatList
-          data={dummySearchResults}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.searchItem}>
-              <Text>{item.name}</Text>
-              <TouchableOpacity style={styles.addButton}>
-                <Text style={styles.addButtonText}>추가</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
+        {['breakfast', 'lunch', 'dinner'].map((meal) => (
+          <MealSection
+            key={meal}
+            mealCd={meal}
+            title={
+              meal === 'breakfast' ? '아침' : meal === 'lunch' ? '점심' : '저녁'
+            }
+            meals={todayMeals[meal]}
+            onDeleteMeal={handleDeleteMeal}
+            onDeleteFoodItem={handleDeleteFoodItem}
+          />
+        ))}
+      </ScrollView>
 
-        <Text style={styles.sectionTitle}>오늘의 식사</Text>
-        <FlatList
-          data={dummyTodayMeals}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Text style={styles.mealItem}>
-              • {item.name} ({item.amount}g)
-            </Text>
-          )}
-        />
-      </KeyboardAvoidingView>
+      <FoodSearchModal
+        visible={showModal}
+        onClose={closeMealModal}
+        searchText={searchText}
+        setSearchText={setSearchText}
+        searchResults={searchResults}
+        onAdd={addFoodToMeal}
+        selectedMealCd={selectedMealCd}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 20, flex: 1 },
+  dateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 28,
   },
-  container: {
-    padding: 20,
-    flex: 1,
+  dateText: {
+    fontSize: 20,
+    color: '#333',
+    textAlign: 'center',
+    marginRight: 16,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  searchItem: {
+  changeDateText: { fontSize: 14, color: colors.RED_500, fontWeight: '600' },
+
+  buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderColor: '#ccc',
+    marginBottom: 40,
   },
-  addButton: {
+  mealButton: {
     backgroundColor: colors.RED_500,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    flex: 1,
   },
-  addButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  mealItem: {
-    fontSize: 15,
-    marginVertical: 4,
-  },
+  mealButtonText: { color: '#fff', fontWeight: 'bold' },
 });
 
 export default Meal;
